@@ -1,11 +1,13 @@
+
+
 namespace BlogAPI.Data
 {
     public class AppDbContext : DbContext
     {
         public AppDbContext(){}
+        public AppDbContext(DbContextOptions options):base(options){}
         public DbSet<User> Users { get; set; }
         public DbSet<Blog> Blogs { get; set; }
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlite("Data Source=Database.db");

@@ -6,7 +6,7 @@ namespace BlogAPI.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        protected readonly AppDbContext db;
+        private readonly AppDbContext db;
         public UserController(AppDbContext _db)
         {
             db = _db;
@@ -48,9 +48,9 @@ namespace BlogAPI.Controllers
             return NoContent();
         }
 
-        [HttpPost("{user}")]
+        [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<User>> CreateUser(User user)
+        public async Task<ActionResult<User>> CreateUser([FromBody]User user)
         {
             db.Users.Add(user);
             await db.SaveChangesAsync();
