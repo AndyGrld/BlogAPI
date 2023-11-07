@@ -11,9 +11,6 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<AppDbContext>(options => {
-    options.UseSqlite("Data Source=Database.db");
-});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
