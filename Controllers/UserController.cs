@@ -6,7 +6,7 @@ namespace BlogAPI.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly AppDbContext db;
+        protected readonly AppDbContext db;
         public UserController(AppDbContext _db)
         {
             db = _db;
@@ -17,7 +17,7 @@ namespace BlogAPI.Controllers
         public async Task<IActionResult> GetAll()
         {
             var users = await db.Users.ToListAsync();
-            return Ok();
+            return Ok(users);
         }
 
         [HttpGet("{id}")]
@@ -33,20 +33,20 @@ namespace BlogAPI.Controllers
             return Ok(user);
         }
 
-        // [HttpDelete("{id:int}")]
-        // [ProducesResponseType(StatusCodes.Status204NoContent)]
-        // [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        // public async Task<IActionResult> DeleteUser(int id)
-        // {
-        //     var user = await db.Users.FirstOrDefaultAsync(u => u.UserId == id);
-        //     if (id < 0 || user == null)
-        //     {
-        //         return BadRequest();
-        //     }
-        //     db.Users.Remove(user);
-        //     await db.SaveChangesAsync();
-        //     return NoContent();
-        // }
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            var user = await db.Users.FirstOrDefaultAsync(u => u.UserId == id);
+            if (id < 0 || user == null)
+            {
+                return BadRequest();
+            }
+            db.Users.Remove(user);
+            await db.SaveChangesAsync();
+            return NoContent();
+        }
 
         [HttpPost("{user}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
