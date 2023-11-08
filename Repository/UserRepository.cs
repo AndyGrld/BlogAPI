@@ -10,6 +10,8 @@ namespace BlogAPI.Repository
             db = _db;
         }
 
+
+        // 🛠 TODO
         public async Task<User> AuthenticateUser(UserLoginDto userLogin)
         {
             var user = await db.Users
@@ -18,8 +20,6 @@ namespace BlogAPI.Repository
             {
                 return null;
             }
-            Session.UserId = user.UserId;
-            Session.CurrentUser = user;
             return user;
         }
 

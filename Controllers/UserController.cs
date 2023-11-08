@@ -102,6 +102,7 @@ namespace BlogAPI.Controllers
             }
         }
 
+        // 🛠 TODO
         [HttpPost("login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -113,21 +114,7 @@ namespace BlogAPI.Controllers
                 return BadRequest(new {Message = "Wrong email or password"});
             }
             var userDto = mapper.Map<UserDto>(user);
-            return Ok(new {Message = "Logged in successfully", Data = userDto});
-        }
-
-        [HttpPost("{id}/logout")]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult LogoutUser(int id)
-        {
-            if (Session.UserId != id || Session.UserId <= 0)
-            {
-                return BadRequest(new {Message = "User not logged in"});
-            }
-            Session.UserId = 0;
-            Session.CurrentUser = null;
-            return Ok(new {Message = "Logged out successfully"});
+            return Ok(new {Message = $"Logged in successfully", Data = userDto});
         }
     }
 }

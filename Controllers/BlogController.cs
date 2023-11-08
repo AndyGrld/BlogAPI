@@ -34,15 +34,9 @@ namespace BlogAPI.Controllers
         [HttpPost]
         public async Task<ActionResult> CreateBlog([FromBody] BlogCreateDto createBlog)
         {
-            if (Session.UserId == 0)
-            {
-                return Unauthorized(new {Message = "Please login to continue"});
-            }
             var blog = mapper.Map<Blog>(createBlog);
             blog.DatePosted = DateTime.Today.Date;
             blog.TimePosted = DateTime.Now.TimeOfDay;
-            blog.User = Session.CurrentUser;
-            blog.Userid = Session.UserId;
             db.Blogs.Add(blog);
 
             await db.SaveChangesAsync();
