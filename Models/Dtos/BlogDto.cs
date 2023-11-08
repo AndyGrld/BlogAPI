@@ -3,15 +3,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BlogAPI.Models
 {
-    [Table("Blogs")]
-    public class Blog
+    public class BlogDto
     {
-        public int BlogId { get; set; }
-        public int Userid { get; set; }
         public User? User { get; set; }
         public string? Title { get; set; }
         public string? Content { get; set; }
-        public DateTime DatePosted { get; set; }
-        public TimeSpan TimePosted { get; set; }
     }
 }

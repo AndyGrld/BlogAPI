@@ -2,6 +2,10 @@ global using Microsoft.EntityFrameworkCore;
 global using BlogAPI.Models;
 global using BlogAPI.Data;
 global using Microsoft.AspNetCore.Mvc;
+using BlogAPI.Repository.Interfaces;
+using BlogAPI.Repository;
+using BlogAPI;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,9 +16,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Connect to sqlite database
 builder.Services.AddDbContext<AppDbContext>(options => 
     options.UseSqlite("Data Source=Database.db")
 );
+
+// Register repository
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+// Register automapper
+builder.Services.AddAutoMapper(typeof(MappingConfig));
 
 var app = builder.Build();
 
