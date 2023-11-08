@@ -7,6 +7,7 @@ using BlogAPI.Repository.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BlogAPI.Controllers
 {
@@ -27,7 +28,7 @@ namespace BlogAPI.Controllers
             this.iConfiguration = iConfiguration;
         }
 
-        [HttpGet]
+        [HttpGet, Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
@@ -111,7 +112,6 @@ namespace BlogAPI.Controllers
             }
         }
 
-        // 🛠 TODO
         [HttpPost("login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -135,16 +135,17 @@ namespace BlogAPI.Controllers
         private string CreateToken(User user)
         {
             List<Claim> claims = new List<Claim>{
-                new Claim(ClaimTypes.Name, user.Username)
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Role, "User")
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
                 iConfiguration.GetSection("AppSettings:Token").Value!
             ));
 
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha5125Signature);
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
 
-            var token = JwtSecurityToken(
+            var token = new JwtSecurityToken(
                 claims: claims,
                 expires: DateTime.Now.AddDays(1),
                 signingCredentials: creds
