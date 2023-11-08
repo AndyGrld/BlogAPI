@@ -1,7 +1,12 @@
 using System.Net.Sockets;
+using System.Security.Claims;
+using System.Text;
 using AutoMapper;
+using BCrypt.Net;
 using BlogAPI.Repository.Interfaces;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace BlogAPI.Controllers
 {
@@ -12,12 +17,14 @@ namespace BlogAPI.Controllers
         private readonly AppDbContext db;
         private readonly IUserRepository userRepository;
         private readonly IMapper mapper;
+        private readonly IConfiguration iConfiguration;
         public UserController(AppDbContext _db, IUserRepository userRepository,
-            IMapper mapper)
+            IMapper mapper, IConfiguration iConfiguration)
         {
             db = _db;
             this.mapper = mapper;
             this.userRepository = userRepository;
+            this.iConfiguration = iConfiguration;
         }
 
         [HttpGet]
@@ -72,6 +79,7 @@ namespace BlogAPI.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<ActionResult<User>> CreateUser([FromBody]UserCreateDto usertoCreate)
         {
+            usertoCreate.Password = BCrypt.Net.BCrypt.HashPassword(usertoCreate.Password);
             var user = mapper.Map<User>(usertoCreate);
             user = await userRepository.CreateAsync(user);
             var userDto = mapper.Map<UserDto>(user);
@@ -83,14 +91,15 @@ namespace BlogAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> UpdateUser([FromRoute]int id, [FromBody]User? user)
+        public async Task<ActionResult> UpdateUser([FromRoute]int id, [FromBody]UserUpdateDto userDto)
         {
             try
             {
-                if(id != user.UserId || id <= 0)
+                if(id != userDto.UserId || id <= 0)
                 {
                     return BadRequest();
                 }
+                var user = mapper.Map<User>(userDto);
                 user = await userRepository.UpdateByIdAsync(id, user);
                 return NoContent();
             }
@@ -108,13 +117,42 @@ namespace BlogAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> LoginUser([FromBody] UserLoginDto userLogin)
         {
-            var user = await userRepository.AuthenticateUser(userLogin);
+            var user = await db.Users
+                .FirstOrDefaultAsync(u => u.Email == userLogin.Email);
             if (user == null)
             {
-                return BadRequest(new {Message = "Wrong email or password"});
+                return BadRequest(new {Message = "Wrong email, please try again"});
+            }
+            if (!BCrypt.Net.BCrypt.Verify(userLogin.Password, user.Password))
+            {
+                return BadRequest(new {Message = "Wrong password, please try again"});
             }
             var userDto = mapper.Map<UserDto>(user);
-            return Ok(new {Message = $"Logged in successfully", Data = userDto});
+            string token = CreateToken(user);
+            return Ok(new {Message = $"Logged in successfully", Data = token});
+        }
+
+        private string CreateToken(User user)
+        {
+            List<Claim> claims = new List<Claim>{
+                new Claim(ClaimTypes.Name, user.Username)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                iConfiguration.GetSection("AppSettings:Token").Value!
+            ));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha5125Signature);
+
+            var token = JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: creds
+            );
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return jwt;
         }
     }
 }

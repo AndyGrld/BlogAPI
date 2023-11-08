@@ -10,19 +10,6 @@ namespace BlogAPI.Repository
             db = _db;
         }
 
-
-        // 🛠 TODO
-        public async Task<User> AuthenticateUser(UserLoginDto userLogin)
-        {
-            var user = await db.Users
-                .FirstOrDefaultAsync(u => (u.Email == userLogin.Email) && (u.Password == userLogin.Password));
-            if (user == null)
-            {
-                return null;
-            }
-            return user;
-        }
-
         public async Task<User> CreateAsync(User user)
         {
             await db.Users.AddAsync(user);

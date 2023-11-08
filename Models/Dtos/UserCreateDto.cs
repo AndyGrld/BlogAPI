@@ -5,8 +5,6 @@ namespace BlogAPI.Models
 {
     public class UserCreateDto
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string? Username { get; set; }
         public string? Email { get; set; }
         public string? Password { get; set; }

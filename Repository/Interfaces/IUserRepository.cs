@@ -7,6 +7,5 @@ namespace BlogAPI.Repository.Interfaces
         public Task<User?> UpdateByIdAsync(int id, User user);
         public Task<User> DeleteByIdAsync(int id);
         public Task<User> CreateAsync(User user);
-        public Task<User> AuthenticateUser(UserLoginDto userLogin);
     }
 }
