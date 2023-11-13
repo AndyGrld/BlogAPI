@@ -48,6 +48,19 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=Database.db")
 );
 
+// Adding cors policy
+builder.Services.AddCors( options => options.AddPolicy(
+    "corspolicy", policy => {
+        policy.WithOrigins("http://localhost:3000").AllowAnyMethod().AllowAnyHeader();
+    }
+));
+// builder.Services.AddCors(options => options.AddDefaultPolicy(
+//     builder => builder.AllowAnyOrigin()
+// ));
+
+// Mulitple domain
+// Any domain
+
 // Register repository
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
@@ -64,6 +77,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// add cors policy
+// app.UseCors();
+app.UseCors("corspolicy");
 
 app.UseAuthorization();
 

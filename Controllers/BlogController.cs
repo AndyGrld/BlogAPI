@@ -32,9 +32,16 @@ namespace BlogAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateBlog([FromBody] BlogCreateDto createBlog)
+        public async Task<ActionResult> CreateBlog(int userId, [FromBody] BlogCreateDto createBlog)
         {
+            // get user creating blog
+            var user = db.Users.FirstOrDefault(u => u.UserId == userId);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
             var blog = mapper.Map<Blog>(createBlog);
+            blog.Userid = userId;
             blog.DatePosted = DateTime.Today.Date;
             blog.TimePosted = DateTime.Now.TimeOfDay;
             db.Blogs.Add(blog);

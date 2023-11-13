@@ -16,9 +16,9 @@ namespace BlogAPI.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
-                .HasMany(e => e.Blogs) // blog dataset
-                .WithOne(e => e.User) // user reference from blog model
-                .HasForeignKey(e => e.Userid) // user id reference from blog
+                .HasMany(u => u.Blogs) // blog dataset
+                .WithOne(b => b.User) // user reference from blog model
+                .HasForeignKey(b => b.Userid) // user id reference from blog
                 .IsRequired();
 
             // modelBuilder.Entity<Blog>()

@@ -28,18 +28,12 @@ namespace BlogAPI.Controllers
             this.iConfiguration = iConfiguration;
         }
 
-        [HttpGet, Authorize(Roles = "User")]
+        [HttpGet]
+        // [HttpGet, Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
             var users = await userRepository.GetAllAsync();
-            // var usersDto = users.Select(u => new UserDto()
-            // {
-            //     UserId = u.UserId,
-            //     Username = u.Username,
-            //     Email = u.Email,
-            //     Blogs = u.Blogs
-            // }).ToList();
             var usersDto = mapper.Map<List<UserDto>>(users);
             return Ok(usersDto);
         }
@@ -52,12 +46,12 @@ namespace BlogAPI.Controllers
         {
             if (id <= 0)
             {
-                return BadRequest();
+                return BadRequest("Id does not exist");
             }
             var user = await userRepository.GetByIdAsync(id);
             if (user == null)
             {
-                return NotFound();
+                return NotFound("User not found");
             }
             var userDto = mapper.Map<UserDto>(user);
             return Ok(userDto);
@@ -70,7 +64,7 @@ namespace BlogAPI.Controllers
         {
             if (id < 0)
             {
-                return BadRequest();
+                return BadRequest("Id does not exist");
             }
             var user = await userRepository.DeleteByIdAsync(id);
             return NoContent();
@@ -96,13 +90,17 @@ namespace BlogAPI.Controllers
         {
             try
             {
-                if(id != userDto.UserId || id <= 0)
+                if(id <= 0)
                 {
-                    return BadRequest();
+                    return BadRequest("Id does not exist");
+                }
+                if(id != userDto.UserId)
+                {
+                    return BadRequest("Ids do not match");
                 }
                 var user = mapper.Map<User>(userDto);
                 user = await userRepository.UpdateByIdAsync(id, user);
-                return NoContent();
+                return Ok("Data has been updated");
             }
             // For errors during updating such as errors due to foreign constraints
             catch(DbUpdateException e)
@@ -112,48 +110,48 @@ namespace BlogAPI.Controllers
             }
         }
 
-        [HttpPost("login")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> LoginUser([FromBody] UserLoginDto userLogin)
-        {
-            var user = await db.Users
-                .FirstOrDefaultAsync(u => u.Email == userLogin.Email);
-            if (user == null)
-            {
-                return BadRequest(new {Message = "Wrong email, please try again"});
-            }
-            if (!BCrypt.Net.BCrypt.Verify(userLogin.Password, user.Password))
-            {
-                return BadRequest(new {Message = "Wrong password, please try again"});
-            }
-            var userDto = mapper.Map<UserDto>(user);
-            string token = CreateToken(user);
-            return Ok(new {Message = $"Logged in successfully", Data = token});
-        }
+        // [HttpPost("login")]
+        // [ProducesResponseType(StatusCodes.Status200OK)]
+        // [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        // public async Task<ActionResult> LoginUser([FromBody] UserLoginDto userLogin)
+        // {
+        //     var user = await db.Users
+        //         .FirstOrDefaultAsync(u => u.Email == userLogin.Email);
+        //     if (user == null)
+        //     {
+        //         return BadRequest(new {Message = "Wrong email, please try again"});
+        //     }
+        //     if (!BCrypt.Net.BCrypt.Verify(userLogin.Password, user.Password))
+        //     {
+        //         return BadRequest(new {Message = "Wrong password, please try again"});
+        //     }
+        //     var userDto = mapper.Map<UserDto>(user);
+        //     string token = CreateToken(user);
+        //     return Ok(new {Message = $"Logged in successfully", Data = token});
+        // }
 
-        private string CreateToken(User user)
-        {
-            List<Claim> claims = new List<Claim>{
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, "User")
-            };
+        // private string CreateToken(User user)
+        // {
+        //     List<Claim> claims = new List<Claim>{
+        //         new Claim(ClaimTypes.Name, user.Username),
+        //         new Claim(ClaimTypes.Role, "User")
+        //     };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                iConfiguration.GetSection("AppSettings:Token").Value!
-            ));
+        //     var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+        //         iConfiguration.GetSection("AppSettings:Token").Value!
+        //     ));
 
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
+        //     var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
 
-            var token = new JwtSecurityToken(
-                claims: claims,
-                expires: DateTime.Now.AddDays(1),
-                signingCredentials: creds
-            );
+        //     var token = new JwtSecurityToken(
+        //         claims: claims,
+        //         expires: DateTime.Now.AddDays(1),
+        //         signingCredentials: creds
+        //     );
 
-            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+        //     var jwt = new JwtSecurityTokenHandler().WriteToken(token);
 
-            return jwt;
-        }
+        //     return jwt;
+        // }
     }
 }

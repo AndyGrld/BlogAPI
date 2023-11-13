@@ -44,14 +44,19 @@ namespace BlogAPI.Repository
 
         public async Task<User?> UpdateByIdAsync(int id, User user)
         {
-            var userExists = db.Users.FirstOrDefault(u => u.UserId == id) != null;
-            if (!userExists)
+            var existingUser = await db.Users.FirstOrDefaultAsync(u => u.UserId == id);
+
+            if (existingUser == null)
             {
                 return null;
             }
-            db.Entry(user).State = EntityState.Modified;
+
+            // Update the properties of the existingUser with values from userDto
+            existingUser.Username = user.Username;
+            existingUser.Email = user.Email;
+
             await db.SaveChangesAsync();
-            return user;
+            return existingUser;
         }
     }
 }
